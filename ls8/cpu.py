@@ -72,6 +72,14 @@ class CPU:
 
         print()
 
+    def ram_read(self, address):
+      """Ram read method"""
+      return self.ram[address]
+
+    def ram_write(self, value, address):
+      """Ram write method"""
+      self.ram[address] = value
+
     def run(self):
         """Run the CPU."""
         # set the variable HLT to numeric value zero
@@ -114,11 +122,5 @@ class CPU:
             
             self.pc += inc_size
 
-    def ram_read(self, address):
-      """Ram read method"""
-        return self.ram[address]
-
-    def ram_write(self, address, value):
-      """Ram write method"""
-        self.ram[address] = value
+   
 
