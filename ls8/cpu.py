@@ -68,7 +68,20 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        #loop while true
+        while True:
+            # store it in the a variable instruction_register
+            instruction_register = self.pc
+            # set instruction_size to zero
+            instruction_size = 0
+            # read the byte at PC and store it in opcode
+            opcode = self.ram_read(instruction_register)
+            # read byte at PC + 1 and store it in operand_a
+            operand_a = self.ram_read(instruction_register + 1)
+            # read byte at PC + 2 and store it in operand_b
+            operand_b = self.ram_read(instruction_register + 2)
+            # add the value of instruction_size to the register PC
+            self.pc += instruction_size
 
     def ram_read(self, address):
       """Ram read method"""
