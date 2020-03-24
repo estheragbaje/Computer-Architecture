@@ -2,6 +2,11 @@
 
 import sys
 
+# opcodes
+HLT = 0b00000001
+PRN = 0b01000111
+LDI = 0b10000010
+
 class CPU:
     """Main CPU class."""
 
