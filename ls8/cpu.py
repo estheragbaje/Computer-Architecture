@@ -13,6 +13,7 @@ class CPU:
         self.reg = [0] * 8
         # set program counter to zero
         self.pc = 0
+        self.halted = False
         
 
     def load(self):
@@ -68,6 +69,9 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        # set the variable HLT to numeric value zero
+        HLT = 0
+    
         #loop while true
         while True:
             # store it in the a variable instruction_register
