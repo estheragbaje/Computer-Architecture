@@ -2,12 +2,17 @@
 
 import sys
 
+# reserved ragisters
+SP = 7
+
 # opcodes
 HLT = 0b00000001
 PRN = 0b01000111
 LDI = 0b10000010
 ADD = 0b10100000
 MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
 
 class CPU:
     """Main CPU class."""
@@ -21,11 +26,11 @@ class CPU:
         # set program counter to zero
         self.pc = 0
         self.halted = False
+        self.reg[SP] = 0XF4
         
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
-
         try:
             address = 0
             with open(filename) as f:
@@ -93,23 +98,6 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        # set the variable HLT to numeric value zero
-        # HLT = 0
-    
-        # #loop while true
-        # while True:
-        #     # store it in the a variable instruction_register
-        #     instruction_register = self.pc
-        #     # set instruction_size to zero
-        #     instruction_size = 0
-        #     # read the byte at PC and store it in opcode
-        #     opcode = self.ram_read(instruction_register)
-        #     # read byte at PC + 1 and store it in operand_a
-        #     operand_a = self.ram_read(instruction_register + 1)
-        #     # read byte at PC + 2 and store it in operand_b
-        #     operand_b = self.ram_read(instruction_register + 2)
-        #     # add the value of instruction_size to the register PC
-        #     self.pc += instruction_size
         inc_size = 0
         while not self.halted:
             cmd = self.ram_read(self.pc)
@@ -138,6 +126,18 @@ class CPU:
             elif cmd == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 inc_size = 3
+
+            elif cmd == PUSH:
+                val = self.reg[operand_a]
+                self.reg[SP] -= 1
+                self.ram_write(val, self.reg[SP])
+                inc_size = 2
+
+            elif cmd == POP:
+                val = self.ram_read(self.reg[SP])
+                self.reg[SP] += 1
+                self.reg[operand_a] = val
+                inc_size = 2
 
             self.pc += inc_size
 
