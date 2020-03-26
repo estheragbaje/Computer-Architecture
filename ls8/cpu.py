@@ -194,9 +194,16 @@ class CPU:
         self.reg[opr1] = val
         inc_size = 2
 
-    def handle_ret(self, opr1, opr2):
+    def handle_RET(self, opr1, opr2):
         return_address = self.ram_read(self.reg[self.SP])
         self.reg[self.SP] += 1
         self.pc = return_address
+
+    def handle_CALL(self, opr1, opr2):
+        self.reg[self.SP] -= 1  
+        self.ram[self.reg[self.SP]] = self.pc + 2
+        self.pc = self.reg[opr1]
+        self.halted = True
+        instruction_size = 2
 
 
