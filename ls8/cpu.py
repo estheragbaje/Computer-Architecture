@@ -194,3 +194,9 @@ class CPU:
         self.reg[opr1] = val
         inc_size = 2
 
+    def handle_ret(self, opr1, opr2):
+        return_address = self.ram_read(self.reg[self.SP])
+        self.reg[self.SP] += 1
+        self.pc = return_address
+
+
