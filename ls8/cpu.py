@@ -6,13 +6,15 @@ import sys
 SP = 7
 
 # opcodes
-HLT = 0b00000001
+HLT = 0b00000001  
 PRN = 0b01000111
 LDI = 0b10000010
 ADD = 0b10100000
 MUL = 0b10100010
-PUSH = 0b01000101
+PUSH = 0b01000101  
 POP = 0b01000110
+RET = 0b00010001 
+CALL = 0b01010000
 
 class CPU:
     """Main CPU class."""
@@ -27,6 +29,16 @@ class CPU:
         self.pc = 0
         self.halted = False
         self.reg[SP] = 0XF4
+        self.branchtable = {}
+        self.branchtable[LDI] = self.handle_LDI
+        self.branchtable[PRN] = self.handle_PRN
+        self.branchtable[HLT] = self.handle_HLT
+        self.branchtable[MUL] = self.handle_MUL
+        self.branchtable[ADD] = self.handle_ADD
+        self.branchtable[PUSH] = self.handle_PUSH
+        self.branchtable[POP] = self.handle_POP
+        self.branchtable[RET] = self.handle_RET
+        self.branchtable[CALL] = self.handle_CALL
         
 
     def load(self, filename):
@@ -104,42 +116,81 @@ class CPU:
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
-            if cmd == HLT:
-                self.halted = True
-                sys.exit(-1)
+            if cmd in self.branchtable:
+                self.branchtable[cmd](operand_a, operand_b)
+            else:
+                raise Exception(f"Invalid instruction")
+
+            # if cmd == HLT:
+            #     self.halted = True
+            #     sys.exit(-1)
             
-            elif cmd == PRN:
-                reg_index = operand_a
-                num = self.reg[reg_index]
-                print(num)
-                inc_size = 2
+            # elif cmd == PRN:
+            #     reg_index = operand_a
+            #     num = self.reg[reg_index]
+            #     print(num)
+            #     inc_size = 2
 
-            elif cmd == LDI:
-                # do ldi
-                self.reg[operand_a] = operand_b
-                inc_size = 3
+            # elif cmd == LDI:
+            #     # do ldi
+            #     self.reg[operand_a] = operand_b
+            #     inc_size = 3
             
-            elif cmd == ADD:
-                self.alu("ADD", operand_a, operand_b)
-                inc_size = 3
+            # elif cmd == ADD:
+            #     self.alu("ADD", operand_a, operand_b)
+            #     inc_size = 3
 
-            elif cmd == MUL:
-                self.alu("MUL", operand_a, operand_b)
-                inc_size = 3
+            # elif cmd == MUL:
+            #     self.alu("MUL", operand_a, operand_b)
+            #     inc_size = 3
 
-            elif cmd == PUSH:
-                val = self.reg[operand_a]
-                self.reg[SP] -= 1
-                self.ram_write(val, self.reg[SP])
-                inc_size = 2
+            # elif cmd == PUSH:
+            #     val = self.reg[operand_a]
+            #     self.reg[SP] -= 1
+            #     self.ram_write(val, self.reg[SP])
+            #     inc_size = 2
 
-            elif cmd == POP:
-                val = self.ram_read(self.reg[SP])
-                self.reg[SP] += 1
-                self.reg[operand_a] = val
-                inc_size = 2
+            # elif cmd == POP:
+            #     val = self.ram_read(self.reg[SP])
+            #     self.reg[SP] += 1
+            #     self.reg[operand_a] = val
+            #     inc_size = 2
 
-            self.pc += inc_size
+            # self.pc += inc_size
+    
+    def handle_HLT(self, opr1, opr2):
+        self.halted = True
+        sys.exit(-1)
 
-   
+    def handle_PRN(self, opr1, opr2):
+        reg_index = opr1
+        num = self.reg[reg_index]
+        print(num)
+        inc_size = 2
+
+    def handle_LDI(self, opr1, opr2):
+        reg_index = opr1
+        num = self.reg[reg_index]
+        print(num)
+        inc_size = 2
+
+    def handle_ADD(self, opr1, opr2):
+        self.alu("ADD", opr1, opr2)
+        inc_size = 3
+
+    def handle_MUL(self, opr1, opr2):
+        self.alu("MUL", opr1, opr2)
+        inc_size = 3
+    
+    def handle_PUSH(self, opr1, opr2):
+        val = self.reg[opr1]
+        self.reg[SP] -= 1
+        self.ram_write(val, self.reg[SP])
+        inc_size = 2 
+
+    def handle_POP(self, opr1, opr2):
+        val = self.ram_read(self.reg[SP])
+        self.reg[SP] += 1
+        self.reg[opr1] = val
+        inc_size = 2
 
