@@ -29,10 +29,11 @@ class CPU:
         # set program counter to zero
         self.pc = 0
         self.halted = False
-        self.sp = 7
+        self.reg[7] = 0xF4
         self.flag = 0
         self.reg[self.sp] = 0xF4
-        self.inc_size = 0
+        # self.sp = 7
+        self.inc_size = 1
         self.branchtable = {}
         self.branchtable[LDI] = self.handle_LDI
         self.branchtable[PRN] = self.handle_PRN
@@ -74,19 +75,18 @@ class CPU:
 
         except FileNotFoundError:
             print(f"{sys.argv[0]}: {filename} not found")
-            sys.exit(2)
+            sys.exit(1)
 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
-        elif op == "MUL":
-            self.reg[reg_a] *= self.reg[reg_b]
+        if op in self.branchtable:
+            self.branchtable[op](reg_a, reg_b)
+        # raise an exception if the op is not supported
         else:
             raise Exception("Unsupported ALU operation")
+        
    
 
     def trace(self):
@@ -110,66 +110,69 @@ class CPU:
         print()
 
     def ram_read(self, address):
-      """Ram read method"""
-      return self.ram[address]
+        """Ram read method"""
+        return self.ram[address]
 
     def ram_write(self, value, address):
-      """Ram write method"""
-      self.ram[address] = value
+        """Ram write method"""
+        self.ram[address] = value
 
     def run(self):
         """Run the CPU."""
         
         while not self.halted:
             cmd = self.ram_read(self.pc)
-            # self.inc_size = 1
+            self.inc_size = 1
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
+            masked_cmd = cmd & 0b00100000
+            is_alu_operation = masked_cmd >> 5
+            shifted_cmd = cmd >> 4
+            sets_pc = shifted_cmd & 0b0001
             
-            if cmd in self.branchtable:
+            if is_alu_operation:
+                self.alu(cmd, operand_a, operand_b)
+            elif cmd in self.branchtable:
                 self.branchtable[cmd](operand_a, operand_b)
+
             else:
-                print(f"Invalid instruction", {cmd})
-                sys.exit(1)
+                print(f"Invalid instruction {cmd}")
+                
+                sys.exit(2)
 
-            inc_size = ((cmd >> 6) & 0b11) + 1
+            if not sets_pc:
+                self.inc_size += cmd >> 6
+                self.pc += self.inc_size
 
-            if not self.halted:
-                self.pc += inc_size
 
-    
     def handle_HLT(self, opr1, opr2):  
         sys.exit(0)
 
     def handle_PRN(self, opr1, opr2):
-        reg_index = opr1
-        num = self.reg[reg_index]
+        num = self.reg[opr1]
         print(num)
        
-
     def handle_LDI(self, opr1, opr2):
         self.reg[opr1] = opr2
        
 
     def handle_ADD(self, reg_a, reg_b):
-        self.reg[reg_a] += self.reg[reg_a]
-
+        self.reg[reg_a] += self.reg[reg_b]
 
 
     def handle_MUL(self, reg_a, reg_b):
         self.reg[reg_a] *= self.reg[reg_b]
     
     def handle_PUSH(self, opr1, opr2):
-        val = self.reg[opr1]
-        self.reg[self.sp] -= 1
-        self.ram_write(val, self.reg[self.sp])
+        self.reg[7] -= 1
+        num = self.reg[opr1]
+        self.ram_write(num, self.reg[7])
         
 
     def handle_POP(self, opr1, opr2):
-        val = self.ram_read(self.reg[self.sp])
-        self.reg[self.sp] += 1
-        self.reg[opr1] = val
-        
+        num = self.ram_read(self.reg[7])
+        self.reg[opr1] = num
+        self.reg[7] += 1
 
     def handle_RET(self, opr1, opr2):
         return_address = self.ram_read(self.reg[self.sp])
@@ -187,11 +190,11 @@ class CPU:
         reg_a = self.reg[opr1]
         reg_b = self.reg[opr2]
         if reg_a < reg_b:
-            self.flag = 1
+            self.flag = 0b00000100
         elif reg_a > reg_b:
-            self.flag = 1
+            self.flag = 0b00000010
         else:
-            self.flag = 1
+            self.flag = 0b00000001
 
         self.halted = False
 
@@ -205,16 +208,57 @@ class CPU:
     def handle_JEQ(self, opr1, opr2):
         if self.flag == 1:
             self.pc = self.reg[opr1]
-            self.halted = True
-
-        if not self.halted:
             self.pc += 2
+        #     self.halted = True
+
+        # if not self.halted:
+        #     self.pc += 2
 
     def handle_JNE(self, opr1, opr2):
-        if self.flag == 1:
+        if self.flag == 0:
             self.pc = self.reg[opr1]
-            self.halted = True
+            self.pc += 2
+        #     self.halted = True
 
         if not self.halted:
             self.pc += 2
 
+
+# 0b110
+# 0b011
+# 0b010
+
+# 1011
+# 3210
+
+# (1 * 2^3) + (0 * 2 ^ 2) + (1 * 2 ^1) + (1 * 2 ^0)
+# 8 + 0 + 2 + 1 = B
+
+
+
+
+# 1001
+# 3210
+# (1 * 2 ^ 3) + (0 * 2  ^2) + (0 * 2 ^ 1) + (1 * 2 ^ 0)
+
+# 8 + 0 + 0 + 1 = 9
+
+# B9
+
+
+# 0
+# 1
+# 2
+# 3
+# 4
+# 5
+# 6
+# 7
+# 8
+# 9
+# A
+# B
+# C
+# D
+# E
+# F
