@@ -126,7 +126,11 @@ class CPU:
             if cmd in self.branchtable:
                 self.branchtable[cmd](operand_a, operand_b)
             else:
-                raise Exception(f"Invalid instruction")
+                print(f"Invalid instruction")
+                self.halted = True
+            inc_size = ((cmd >> 6) & 0b11) 
+            if not self.halted:
+                self.pc += inc_size
 
     
     def handle_HLT(self, opr1, opr2):
