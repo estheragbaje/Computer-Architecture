@@ -13,6 +13,7 @@ POP = 0b01000110
 RET = 0b00010001 
 CALL = 0b01010000
 CMP = 0b10100111
+JMP = 0b01010100
 
 class CPU:
     """Main CPU class."""
@@ -40,6 +41,7 @@ class CPU:
         self.branchtable[RET] = self.handle_RET
         self.branchtable[CALL] = self.handle_CALL
         self.branchtable[CMP] = self.handle_CMP
+        self.branchtable[JMP] = self.handle_JMP
         
 
     def load(self, filename):
@@ -186,6 +188,12 @@ class CPU:
         if not self.halted:
             self.pc += 3
 
+    def handle_JMP(self, opr1, opr2):
+        self.pc = self.reg[opr1]
 
+        self.halted = True
+
+        if not self.halted:
+            self.pc += 2
 
      
