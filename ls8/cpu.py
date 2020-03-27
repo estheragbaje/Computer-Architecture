@@ -180,8 +180,8 @@ class CPU:
         self.reg[self.sp] -= 1  
         self.ram[self.reg[self.sp]] = self.pc + 2
         self.pc = self.reg[opr1]
-        # self.halted = True
-        # self.pc += 2
+        self.halted = True
+        self.pc += 2
 
     def handle_CMP(self, opr1, opr2):
         reg_a = self.reg[opr1]
@@ -191,12 +191,12 @@ class CPU:
         elif reg_a > reg_b:
             self.flag = 1
         else:
-            self.flag = 0
+            self.flag = 1
 
-    #     # self.halted = False
+        self.halted = False
 
-    #     # if not self.halted:
-    #     #     self.pc += 3
+        if not self.halted:
+            self.pc += 2
 
 
     def handle_JMP(self, opr1, opr2):
@@ -210,9 +210,8 @@ class CPU:
         if not self.halted:
             self.pc += 2
 
-
     def handle_JNE(self, opr1, opr2):
-        if self.flag == 0:
+        if self.flag == 1:
             self.pc = self.reg[opr1]
             self.halted = True
 
