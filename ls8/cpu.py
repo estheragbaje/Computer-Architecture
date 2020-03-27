@@ -127,8 +127,8 @@ class CPU:
                 self.branchtable[cmd](operand_a, operand_b)
             else:
                 print(f"Invalid instruction")
-                self.halted = True
-            inc_size = ((cmd >> 6) & 0b11) 
+                sys.exit(1)
+            inc_size = ((cmd >> 6) & 0b11) + 1
             if not self.halted:
                 self.pc += inc_size
 
