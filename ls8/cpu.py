@@ -31,7 +31,7 @@ class CPU:
         self.halted = False
         self.reg[7] = 0xF4
         self.flag = 0
-        self.reg[self.sp] = 0xF4
+        # self.reg[self.sp] = 0xF4
         # self.sp = 7
         self.inc_size = 1
         self.branchtable = {}
