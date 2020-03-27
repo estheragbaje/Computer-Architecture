@@ -12,6 +12,7 @@ PUSH = 0b01000101
 POP = 0b01000110
 RET = 0b00010001 
 CALL = 0b01010000
+CMP = 0b10100111
 
 class CPU:
     """Main CPU class."""
@@ -26,6 +27,7 @@ class CPU:
         self.pc = 0
         self.halted = False
         self.sp = 7
+        self.flag = 0
         self.reg[self.sp] = 0xF4
         self.branchtable = {}
         self.branchtable[LDI] = self.handle_LDI
@@ -37,6 +39,7 @@ class CPU:
         self.branchtable[POP] = self.handle_POP
         self.branchtable[RET] = self.handle_RET
         self.branchtable[CALL] = self.handle_CALL
+        self.branchtable[CMP] = self.handle_CMP
         
 
     def load(self, filename):
@@ -108,7 +111,7 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        inc_size = 0
+        # inc_size = 0
         while not self.halted:
             cmd = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
@@ -119,42 +122,6 @@ class CPU:
             else:
                 raise Exception(f"Invalid instruction")
 
-            # if cmd == HLT:
-            #     self.halted = True
-            #     sys.exit(-1)
-            
-            # elif cmd == PRN:
-            #     reg_index = operand_a
-            #     num = self.reg[reg_index]
-            #     print(num)
-            #     inc_size = 2
-
-            # elif cmd == LDI:
-            #     # do ldi
-            #     self.reg[operand_a] = operand_b
-            #     inc_size = 3
-            
-            # elif cmd == ADD:
-            #     self.alu("ADD", operand_a, operand_b)
-            #     inc_size = 3
-
-            # elif cmd == MUL:
-            #     self.alu("MUL", operand_a, operand_b)
-            #     inc_size = 3
-
-            # elif cmd == PUSH:
-            #     val = self.reg[operand_a]
-            #     self.reg[SP] -= 1
-            #     self.ram_write(val, self.reg[SP])
-            #     inc_size = 2
-
-            # elif cmd == POP:
-            #     val = self.ram_read(self.reg[SP])
-            #     self.reg[SP] += 1
-            #     self.reg[operand_a] = val
-            #     inc_size = 2
-
-            # self.pc += inc_size
     
     def handle_HLT(self, opr1, opr2):
         self.halted = True
@@ -164,33 +131,33 @@ class CPU:
         reg_index = opr1
         num = self.reg[reg_index]
         print(num)
-        inc_size = 2
+        self.pc += 2
 
     def handle_LDI(self, opr1, opr2):
         reg_index = opr1
         num = self.reg[reg_index]
         print(num)
-        inc_size = 2
+        self.pc += 2
 
     def handle_ADD(self, opr1, opr2):
         self.alu("ADD", opr1, opr2)
-        inc_size = 3
+        self.pc += 3
 
     def handle_MUL(self, opr1, opr2):
         self.alu("MUL", opr1, opr2)
-        inc_size = 3
+        self.pc += 3
     
     def handle_PUSH(self, opr1, opr2):
         val = self.reg[opr1]
         self.reg[self.sp] -= 1
         self.ram_write(val, self.reg[self.sp])
-        inc_size = 2 
+        self.pc += 2 
 
     def handle_POP(self, opr1, opr2):
         val = self.ram_read(self.reg[SP])
         self.reg[SP] += 1
         self.reg[opr1] = val
-        inc_size = 2
+        self.pc += 2
 
     def handle_RET(self, opr1, opr2):
         return_address = self.ram_read(self.reg[self.SP])
@@ -202,9 +169,22 @@ class CPU:
         self.ram[self.reg[self.SP]] = self.pc + 2
         self.pc = self.reg[opr1]
         self.halted = True
-        inc_size = 2
+        self.pc += 2
 
-  
+    def handle_CMP(self, opr1, opr2):
+        reg_a = self.reg[opr1]
+        reg_b = self.reg[opr2]
+        if reg_a < reg_b:
+            self.flag = 1
+        elif reg_a > reg_b:
+            self.flag = 1
+        else:
+            self.flag = 1
+
+        self.halted = False
+
+        if not self.halted:
+            self.pc += 3
 
 
 
