@@ -2,9 +2,6 @@
 
 import sys
 
-# reserved ragisters
-SP = 7
-
 # opcodes
 HLT = 0b00000001  
 PRN = 0b01000111
@@ -28,7 +25,8 @@ class CPU:
         # set program counter to zero
         self.pc = 0
         self.halted = False
-        self.reg[SP] = 0XF4
+        self.sp = 7
+        self.reg[self.sp] = 0xF4
         self.branchtable = {}
         self.branchtable[LDI] = self.handle_LDI
         self.branchtable[PRN] = self.handle_PRN
@@ -184,8 +182,8 @@ class CPU:
     
     def handle_PUSH(self, opr1, opr2):
         val = self.reg[opr1]
-        self.reg[SP] -= 1
-        self.ram_write(val, self.reg[SP])
+        self.reg[self.sp] -= 1
+        self.ram_write(val, self.reg[self.sp])
         inc_size = 2 
 
     def handle_POP(self, opr1, opr2):
@@ -204,6 +202,10 @@ class CPU:
         self.ram[self.reg[self.SP]] = self.pc + 2
         self.pc = self.reg[opr1]
         self.halted = True
-        instruction_size = 2
+        inc_size = 2
+
+  
 
 
+
+     
