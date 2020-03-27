@@ -14,6 +14,8 @@ RET = 0b00010001
 CALL = 0b01010000
 CMP = 0b10100111
 JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 
 class CPU:
     """Main CPU class."""
@@ -42,6 +44,8 @@ class CPU:
         self.branchtable[CALL] = self.handle_CALL
         self.branchtable[CMP] = self.handle_CMP
         self.branchtable[JMP] = self.handle_JMP
+        self.branchtable[JEQ] = self.handle_JEQ
+        self.branchtable[JNE] = self.handle_JNE
         
 
     def load(self, filename):
@@ -195,5 +199,19 @@ class CPU:
 
         if not self.halted:
             self.pc += 2
+    
+    def handle_JEQ(self, opr1, opr2):
+        if self.flag == 1:
+            self.pc = self.reg[opr1]
+            self.halted = True
 
-     
+        if not self.halted:
+            self.pc += 2
+
+    def handle_JNE(self, opr1, opr2):
+        if self.flag == 0:
+            self.pc = self.reg[opr1]
+            self.halted = True
+
+        if not self.halted:
+            self.pc += 2
