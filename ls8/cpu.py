@@ -175,16 +175,15 @@ class CPU:
         self.reg[7] += 1
 
     def handle_RET(self, opr1, opr2):
-        return_address = self.ram_read(self.reg[self.sp])
-        self.reg[self.sp] += 1
+        return_address = self.ram_read(self.reg[7])
+        self.reg[7] += 1
         self.pc = return_address
 
     def handle_CALL(self, opr1, opr2):
-        self.reg[self.sp] -= 1  
-        self.ram[self.reg[self.sp]] = self.pc + 2
-        self.pc = self.reg[opr1]
-        self.halted = True
-        self.pc += 2
+        self.reg[7] -= 1 
+        self.ram_write(self.pc + 2, self.reg[7])
+        num = self.reg[opr1]
+        self.pc = num
 
     def handle_CMP(self, opr1, opr2):
         reg_a = self.reg[opr1]
@@ -196,32 +195,25 @@ class CPU:
         else:
             self.flag = 0b00000001
 
-        self.halted = False
-
-        if not self.halted:
-            self.pc += 2
-
 
     def handle_JMP(self, opr1, opr2):
         self.pc = self.reg[opr1]
     
     def handle_JEQ(self, opr1, opr2):
-        if self.flag == 1:
+        equal = self.flag & 0b00000001
+        if equal:
             self.pc = self.reg[opr1]
+        else:
             self.pc += 2
-        #     self.halted = True
-
-        # if not self.halted:
-        #     self.pc += 2
+        
 
     def handle_JNE(self, opr1, opr2):
-        if self.flag == 0:
+        equal = self.flag & 0b00000001
+        if not equal:
             self.pc = self.reg[opr1]
+        else:
             self.pc += 2
-        #     self.halted = True
-
-        if not self.halted:
-            self.pc += 2
+        
 
 
 # 0b110
